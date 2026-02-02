@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百和设计三组开发设计任务单 (支持图片粘贴)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入富文本编辑器样式 -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 10px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            color: white;
+            padding: 20px;
+            border-bottom: 3px solid #ff7a45;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        h1 i {
+            color: #ffcc00;
+        }
+        
+        .department-badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .wechat-tip {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .wechat-tip i {
+            color: #1890ff;
+            font-size: 18px;
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            color: #1890ff;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            color: #1890ff;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group label i {
+            color: #1890ff;
+            width: 18px;
+        }
+        
+        .required::after {
+            content: " *";
+            color: #ff4d4f;
+            font-weight: bold;
+        }
+        
+        .form-control {
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #fafafa;
+            border-radius: 4px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.2s;
+        }
+        
+        .checkbox-item:hover {
+            background-color: #f0f9ff;
+        }
+        
+        .checkbox-item input {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .checkbox-item.checked {
+            background-color: #e6f7ff;
+            border-color: #91d5ff;
+        }
+        
+        .design-requirements {
+            grid-column: 1 / -1;
+        }
+        
+        /* 富文本编辑器容器样式 */
+        #editor-container {
+            min-height: 200px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background-color: white;
+            margin-top: 5px;
+        }
+        
+        /* 编辑器工具栏样式优化 */
+        .ql-toolbar.ql-snow {
+            border: 1px solid #d9d9d9 !important;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            background-color: #fafafa;
+        }
+        
+        .ql-container.ql-snow {
+            border: 1px solid #d9d9d9 !important;
+            border-top: none !important;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            min-height: 150px;
+        }
+        
+        .ql-editor {
+            min-height: 150px;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 12px;
+        }
+        
+        .ql-editor.ql-blank::before {
+            color: rgba(0, 0, 0, 0.4);
+            font-style: normal;
+            font-size: 14px;
+        }
+        
+        .image-tip {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            padding: 5px;
+            background-color: #f9f9f9;
+            border-radius: 3px;
+            border-left: 3px solid #1890ff;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 110px;
+        }
+        
+        .btn-reset {
+            background-color: #f5f5f5;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .btn-reset:hover {
+            background-color: #e8e8e8;
+        }
+        
+        .btn-save {
+            background-color: #1890ff;
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background-color: #096dd9;
+        }
+        
+        .btn-print {
+            background-color: #52c41a;
+            color: white;
+        }
+        
+        .btn-print:hover {
+            background-color: #389e0d;
+        }
+        
+        .btn-pdf {
+            background-color: #ff4d4f;
+            color: white;
+        }
+        
+        .btn-pdf:hover {
+            background-color: #d9363e;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: #888;
+            font-size: 12px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 20px;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                font-size: 12pt;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .form-control, textarea {
+                border: 1px solid #999 !important;
+                background-color: #fff !important;
+            }
+            
+            .checkbox-item.checked {
+                background-color: #f0f0f0 !important;
+            }
+            
+            header {
+                background: #f0f0f0 !important;
+                color: black !important;
+                border-bottom: 2px solid #999;
+            }
+            
+            /* 打印时确保编辑器内容可见 */
+            .ql-editor {
+                border: 1px solid #999 !important;
+                min-height: auto;
+                height: auto !important;
+            }
+            
+            .ql-toolbar {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .ql-toolbar .ql-formats {
+                margin-right: 5px !important;
+            }
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .status-low {
+            background-color: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        
+        .status-medium {
+            background-color: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+        
+        .status-high {
+            background-color: #fff2f0;
+            color: #ff4d4f;
+            border: 1px solid #ffccc7;
+        }
+        
+        .instructions {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 8px;
+            color: #389e0d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="formContainer">
+        <header>
+            <h1><i class="fas fa-clipboard-check"></i> 百和设计三组开发设计任务单 <span class="department-badge">设计三组专用</span></h1>
+            <p class="subtitle">请填写以下信息以创建新的开发或设计任务</p>
+        </header>
+        
+        <div class="content">
+            <div class="wechat-tip no-print">
+                <i class="fas fa-images"></i>
+                <div>
+                    <strong>新增图片功能：</strong> 现在可以在"设计要求"中<strong>直接粘贴图片</strong>了！支持截图粘贴和图片上传。
+                </div>
+            </div>
+            
+            <div class="instructions no-print">
+                <h3><i class="fas fa-info-circle"></i> 使用说明</h3>
+                <p>1. 填写所有带 <span style="color: #ff4d4f;">*</span> 的必填项</p>
+                <p>2. 勾选需要完成的设计内容，可多选</p>
+                <p>3. 详细描述设计要求，<strong>可直接粘贴图片</strong>，提供尽可能多的细节</p>
+                <p>4. 填写完成后可保存、打印或导出文件</p>
+            </div>
+            
+            <form id="taskForm">
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fas fa-file-alt"></i> 基本信息</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="orderNo" class="required"><i class="fas fa-hashtag"></i> 订单编号</label>
+                            <input type="text" id="orderNo" class="form-control" placeholder="例如: BH20231115001" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="taskType" class="required"><i class="fas fa-code-branch"></i> 开发/订单</label>
+                            <select id="taskType" class="form-control" required>
+                                <option value="">请选择类型</option>
+                                <option value="开发单">开发单</option>
+                                <option value="大货订单">大货订单</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="priority" class="required"><i class="fas fa-flag"></i> 程度级别</label>
+                            <select id="priority" class="form-control" required>
+                                <option value="">请选择优先级</option>
+                                <option value="低">低</option>
+                                <option value="中">中</option>
+                                <option value="高">高</option>
+                                <option value="紧急">紧急</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="department" class="required"><i class="fas fa-building"></i> 申请部门</label>
+                            <input type="text" id="department" class="form-control" placeholder="例如: 设计部" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="applicant" class="required"><i class="fas fa-user"></i> 申请人</label>
+                            <input type="text" id="applicant" class="form-control" placeholder="请输入姓名" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="deadline" class="required"><i class="fas fa-calendar-alt"></i> 完成时间</label>
+                            <input type="date" id="deadline" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clientName" class="required"><i class="fas fa-user-tie"></i> 客户名称</label>
+                            <input type="text" id="clientName" class="form-control" placeholder="请输入客户名称" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clientCountry" class="required"><i class="fas fa-globe"></i> 客户国家</label>
+                            <input type="text" id="clientCountry" class="form-control" placeholder="请输入客户所在国家" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fas fa-paint-brush"></i> 设计内容 (可多选)</h2>
+                    <div class="checkbox-group" id="designContent">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="layout" name="designContent" value="基础排版">
+                            <label for="layout">基础排版</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mark" name="designContent" value="唛头制作">
+                            <label for="mark">唛头制作</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="cuttingLine" name="designContent" value="刀线画图">
+                            <label for="cuttingLine">刀线画图</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="themeDesign" name="designContent" value="客户主题设计">
+                            <label for="themeDesign">客户主题设计</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="ppt" name="designContent" value="产品PPT推荐">
+                            <label for="ppt">产品PPT推荐</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="other" name="designContent" value="其他">
+                            <label for="other">其他</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fas fa-clipboard-list"></i> 设计要求</h2>
+                    <div class="form-grid">
+                        <div class="form-group design-requirements">
+                            <label for="editor-container" class="required"><i class="fas fa-edit"></i> 详细要求说明 (支持图片)</label>
+                            <!-- 富文本编辑器容器，替换原来的textarea -->
+                            <div id="editor-container">
+                                <!-- 编辑器内容将在这里显示 -->
+                            </div>
+                            <div class="image-tip">
+                                💡 <strong>图片插入方法：</strong> 
+                                1. 截图后按 <strong>Ctrl+V</strong> 直接粘贴 
+                                2. 点击上方工具栏的图片图标上传 
+                                3. 直接将图片文件拖拽到编辑区域
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons no-print">
+                    <button type="button" class="btn btn-reset" id="resetBtn">
+                        <i class="fas fa-redo"></i> 重置
+                    </button>
+                    <button type="button" class="btn btn-save" id="saveBtn">
+                        <i class="fas fa-save"></i> 保存草稿
+                    </button>
+                    <button type="button" class="btn btn-print" id="printBtn">
+                        <i class="fas fa-print"></i> 打印预览
+                    </button>
+                    <button type="button" class="btn btn-pdf" id="pdfBtn">
+                        <i class="fas fa-file-pdf"></i> 导出PDF
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <footer>
+            <p>© 2023 百和设计三组 | 本表单数据仅用于内部流程管理 | 技术支持请联系管理员</p>
+        </footer>
+    </div>
+    
+    <!-- 加载动画 -->
+    <div class="loading" id="loading">
+        <div style="text-align: center;">
+            <i class="fas fa-spinner fa-spin fa-3x"></i>
+            <p style="margin-top: 20px;">正在处理，请稍候...</p>
+        </div>
+    </div>
+
+    <!-- 引入Quill富文本编辑器库 -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+    <script>
+        // 初始化富文本编辑器
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    ['link', 'image']  // 包含图片上传按钮
+                ]
+            },
+            placeholder: '请详细描述设计要求，包括设计风格、尺寸规格、颜色要求、特殊需求等。可以直接粘贴图片或上传图片文件。'
+        });
+
+        // 创建隐藏的input用于表单验证
+        const requirementsInput = document.createElement('input');
+        requirementsInput.type = 'hidden';
+        requirementsInput.id = 'requirements';
+        requirementsInput.required = true;
+        document.getElementById('taskForm').appendChild(requirementsInput);
+
+        // 必填字段数组
+        const requiredFields = [
+            'orderNo', 'taskType', 'priority', 'department', 'applicant', 
+            'deadline', 'clientName', 'clientCountry', 'requirements'
+        ];
+        
+        // 检查是否在微信浏览器中
+        function isWeChatBrowser() {
+            return /MicroMessenger/i.test(navigator.userAgent);
+        }
+        
+        // 显示加载动画
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+        
+        // 隐藏加载动画
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // 初始化函数
+        function init() {
+            // 设置默认日期为明天
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const formattedDate = tomorrow.toISOString().split('T')[0];
+            document.getElementById('deadline').value = formattedDate;
+            
+            // 复选框点击效果
+            const checkboxes = document.querySelectorAll('.checkbox-item input');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const parent = this.parentElement;
+                    if(this.checked) {
+                        parent.classList.add('checked');
+                    } else {
+                        parent.classList.remove('checked');
+                    }
+                });
+            });
+            
+            // 优先级显示效果
+            const prioritySelect = document.getElementById('priority');
+            prioritySelect.addEventListener('change', function() {
+                const existingIndicator = document.querySelector('.status-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+                
+                if (this.value) {
+                    const indicator = document.createElement('span');
+                    indicator.className = 'status-indicator';
+                    
+                    if (this.value === '低') {
+                        indicator.className += ' status-low';
+                        indicator.textContent = '低优先级';
+                    } else if (this.value === '中') {
+                        indicator.className += ' status-medium';
+                        indicator.textContent = '中优先级';
+                    } else if (this.value === '高') {
+                        indicator.className += ' status-high';
+                        indicator.textContent = '高优先级';
+                    } else if (this.value === '紧急') {
+                        indicator.className += ' status-high';
+                        indicator.textContent = '紧急任务';
+                    }
+                    
+                    this.parentElement.appendChild(indicator);
+                }
+            });
+            
+            // 微信浏览器提示
+            if (isWeChatBrowser()) {
+                const wechatTip = document.querySelector('.wechat-tip');
+                wechatTip.innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="color: #faad14;"></i>
+                    <div>
+                        <strong>微信内使用提示：</strong> 建议点击右上角"..."选择"在浏览器打开"以获得最佳体验和完整功能，包括图片粘贴。
+                    </div>
+                `;
+                wechatTip.style.backgroundColor = '#fff7e6';
+                wechatTip.style.borderColor = '#ffd591';
+            }
+            
+            // 加载保存的草稿
+            loadDraft();
+        }
+        
+        // 验证表单
+        function validateForm() {
+            // 将编辑器纯文本内容同步到隐藏的input，以便验证
+            const editorText = quill.getText().trim();
+            requirementsInput.value = editorText;
+            
+            let isValid = true;
+            let missingFields = [];
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field || !field.value.trim()) {
+                    isValid = false;
+                    const label = field ? field.previousElementSibling : null;
+                    const labelText = label ? label.textContent.replace(' *', '').replace(' (支持图片)', '').trim() : fieldId;
+                    if (labelText && !missingFields.includes(labelText)) {
+                        missingFields.push(labelText);
+                    }
+                }
+            });
+            
+            return { isValid, missingFields };
+        }
+        
+        // 重置表单
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            if (confirm('确定要重置表单吗？所有已填写的内容和图片都将被清除。')) {
+                document.getElementById('taskForm').reset();
+                quill.setContents([]); // 清空富文本编辑器
+                
+                document.querySelectorAll('.checkbox-item').forEach(item => {
+                    item.classList.remove('checked');
+                });
+                
+                const existingIndicator = document.querySelector('.status-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+                
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const formattedDate = tomorrow.toISOString().split('T')[0];
+                document.getElementById('deadline').value = formattedDate;
+                
+                localStorage.removeItem('taskDraft');
+                
+                alert('表单已重置！');
+            }
+        });
+        
+        // 保存草稿
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            const { isValid, missingFields } = validateForm();
+            
+            if (!isValid) {
+                alert('请填写所有必填字段：\n' + missingFields.join('\n'));
+                return;
+            }
+            
+            try {
+                const formData = {
+                    orderNo: document.getElementById('orderNo').value,
+                    taskType: document.getElementById('taskType').value,
+                    priority: document.getElementById('priority').value,
+                    department: document.getElementById('department').value,
+                    applicant: document.getElementById('applicant').value,
+                    deadline: document.getElementById('deadline').value,
+                    clientName: document.getElementById('clientName').value,
+                    clientCountry: document.getElementById('clientCountry').value,
+                    designContent: Array.from(document.querySelectorAll('input[name="designContent"]:checked')).map(cb => cb.value),
+                    requirements: quill.root.innerHTML, // 保存富文本编辑器的完整HTML内容（包含图片）
+                    savedAt: new Date().toLocaleString()
+                };
+                
+                localStorage.setItem('taskDraft', JSON.stringify(formData));
+                
+                alert('草稿保存成功！数据（包括图片）已存储在本地，下次打开页面时可继续编辑。');
+            } catch (error) {
+                alert('保存失败：' + error.message);
+            }
+        });
+        
+        // 打印功能
+        document.getElementById('printBtn').addEventListener('click', function() {
+            const { isValid, missingFields } = validateForm();
+            
+            if (!isValid) {
+                alert('请填写所有必填字段：\n' + missingFields.join('\n'));
+                return;
+            }
+            
+            if (isWeChatBrowser()) {
+                alert('打印提示：\n1. 点击右上角"..."\n2. 选择"在浏览器打开"\n3. 在浏览器中按Ctrl+P打印');
+                return;
+            }
+            
+            window.print();
+        });
+        
+        // 导出PDF功能（简化版）
+        document.getElementById('pdfBtn').addEventListener('click', function() {
+            const { isValid, missingFields } = validateForm();
+            
+            if (!isValid) {
+                alert('请填写所有必填字段：\n' + missingFields.join('\n'));
+                return;
+            }
+            
+            // 提供两种导出方案
+            const exportMethod = prompt(
+                '请选择导出方式：\n\n' +
+                '1. 直接打印为PDF（推荐）\n' +
+                '   - 点击"打印预览"\n' +
+                '   - 选择打印机为"另存为PDF"\n' +
+                '   - 保存文件\n\n' +
+                '2. 导出为图片\n' +
+                '   - 在浏览器中按Ctrl+P\n' +
+                '   - 选择"另存为PDF"作为打印机\n\n' +
+                '输入 1 或 2 选择方法：'
+            );
+            
+            if (exportMethod === '1') {
+                // 方法1：使用浏览器打印功能保存为PDF
+                if (isWeChatBrowser()) {
+                    alert('请点击右上角"..."选择"在浏览器打开"，然后在浏览器中按Ctrl+P，选择"另存为PDF"');
+                } else {
+                    alert('请按Ctrl+P，在打印对话框中选择"另存为PDF"作为打印机，然后保存文件。');
+                }
+            } else if (exportMethod === '2') {
+                // 方法2：使用截图功能
+                alert('您可以使用以下方法：\n\n1. 在电脑上：按PrtScn键截屏\n2. 在手机上：同时按音量下键和电源键截屏\n3. 然后将图片保存或发送');
+            }
+        });
+        
+        // 加载草稿
+        function loadDraft() {
+            try {
+                const savedDraft = localStorage.getItem('taskDraft');
+                if (savedDraft) {
+                    if (confirm('检测到有未完成的草稿，是否加载？')) {
+                        const draft = JSON.parse(savedDraft);
+                        
+                        document.getElementById('orderNo').value = draft.orderNo || '';
+                        document.getElementById('taskType').value = draft.taskType || '';
+                        document.getElementById('priority').value = draft.priority || '';
+                        document.getElementById('department').value = draft.department || '';
+                        document.getElementById('applicant').value = draft.applicant || '';
+                        document.getElementById('deadline').value = draft.deadline || '';
+                        document.getElementById('clientName').value = draft.clientName || '';
+                        document.getElementById('clientCountry').value = draft.clientCountry || '';
+                        
+                        // 加载富文本内容（包含图片）
+                        if (draft.requirements) {
+                            quill.root.innerHTML = draft.requirements;
+                        }
+                        
+                        if (draft.designContent && draft.designContent.length > 0) {
+                            draft.designContent.forEach(content => {
+                                const checkbox = document.querySelector(`input[value="${content}"]`);
+                                if (checkbox) {
+                                    checkbox.checked = true;
+                                    checkbox.parentElement.classList.add('checked');
+                                }
+                            });
+                        }
+                        
+                        if (draft.priority) {
+                            const event = new Event('change');
+                            document.getElementById('priority').dispatchEvent(event);
+                        }
+                        
+                        alert('草稿加载完成！');
+                    }
+                }
+            } catch (error) {
+                console.error('加载草稿失败:', error);
+            }
+        }
+        
+        // 页面加载初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
